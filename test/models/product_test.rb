@@ -28,25 +28,35 @@ class ProductTest < ActiveSupport::TestCase
 
     product.price = 1
     assert product.valid?
+  end
 
-    def new_product(image_url)
-      Product.new(title:       "My Book Title",
-                  description: "yyy",
-                  price:       "1",
-                  image_url:   image_url)
+  test "product title must be at least than 2 characters" do
+    product = products(:ruby)
+    assert product.valid?, "product title shouldn't be invalid"
+
+    product.title = "a"
+    assert product.invalid?, "product title shouldn't be valid"
+      assert_equal I18n.translate('errors.messages.too_short', :count => 2),
+        product.errors[:title].join('; ')
+  end
+
+  def new_product(image_url)
+    Product.new(title:       "My Book Title",
+                description: "yyy",
+                price:       "1",
+                image_url:   image_url)
+  end
+
+  test "image_url" do
+    ok = %w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg http://a.b.c/x/y/z/fred.gif }
+    bad = %w{ fred.doc fred.gif/more fred.gif.more }
+
+    ok.each do |name|
+      assert new_product(name).valid?, "#{name} shouldn't be invalid"
     end
 
-    test "image_url" do
-      ok = %w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg http://a.b.c/x/y/z/fred.gif }
-      bad = %w{ fred.doc fred.gif/more fred.gif.more }
-
-      ok.each do |name|
-        assert new_product(name).valid?, "#{name} shouldn't be invalid"
-      end
-
-      bad.each do |name|
-        assert new_product(name).invalid?, "#{name} shouldn't be valid"
-      end
+    bad.each do |name|
+      assert new_product(name).invalid?, "#{name} shouldn't be valid"
     end
   end
 end
